@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="mr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#128C7E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Sender Key Generator</title>
+<style>
+:root{--pri:#128C7E;--tri:#F57C00;--bg:#f2f4fa;--ink:#16203a;--mut:#5b6784;--ok:#1b7f3b;--bad:#c62828;--wa:#25D366}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,"Noto Sans Devanagari",sans-serif;padding-bottom:40px}
+header{background:var(--pri);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5}
+header.trial{background:var(--tri)}
+header h1{font-size:18px;margin:0}
+header button{background:rgba(255,255,255,.2);color:#fff;border:0;border-radius:8px;padding:6px 10px;font-size:13px}
+main{max-width:520px;margin:0 auto;padding:14px 16px}
+.card{background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+label{display:block;font-weight:700;margin:12px 0 5px;font-size:14px}
+label:first-child{margin-top:0}
+input[type=text],input[type=tel],input[type=number],input[type=password]{width:100%;font-size:17px;padding:11px 12px;border:1.5px solid #cfd6ea;border-radius:10px;background:#fff;color:var(--ink)}
+input:focus{outline:2px solid var(--pri);border-color:var(--pri)}
+.seg{display:flex;gap:8px}
+.seg label{flex:1;margin:0;font-weight:600}
+.seg input{display:none}
+.seg span{display:block;text-align:center;padding:11px 6px;border:1.5px solid #cfd6ea;border-radius:10px;background:#fff}
+.seg input:checked+span{background:var(--pri);color:#fff;border-color:var(--pri)}
+.seg input.t:checked+span{background:var(--tri);border-color:var(--tri)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips label{margin:0;font-weight:600}
+.chips input{display:none}
+.chips span{display:block;padding:9px 14px;border:1.5px solid #cfd6ea;border-radius:20px;background:#fff;font-size:15px}
+.chips input:checked+span{background:#e8ecff;border-color:var(--pri);color:var(--pri)}
+.chips.off{opacity:.4;pointer-events:none}
+.row{display:flex;gap:10px}.row>div{flex:1}
+.big{width:100%;border:0;border-radius:12px;padding:15px;font-size:17px;font-weight:800;color:#fff;background:var(--pri);margin-top:16px}
+.big.trial{background:var(--tri)}
+.big:disabled{opacity:.6}
+.btn{border:0;border-radius:10px;padding:12px 14px;font-size:15px;font-weight:700;background:#e8ecff;color:var(--pri);flex:1}
+.btn.wa{background:var(--wa);color:#073b1a}
+.hint{font-size:13px;color:var(--mut);margin-top:6px}
+.msg{margin-top:10px;font-size:14px;font-weight:600}
+.msg.ok{color:var(--ok)}.msg.err{color:var(--bad);white-space:pre-wrap}
+.key{font:700 20px/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.5px;word-break:break-all;background:#eef1fb;border-radius:10px;padding:12px;text-align:center;user-select:all}
+.acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+pre{white-space:pre-wrap;background:#f7f8fc;border-radius:10px;padding:10px;font:14px/1.5 inherit;margin:10px 0 0}
+#lock{max-width:420px;margin:12vh auto 0;padding:0 16px}
+.hide{display:none!important}
+.rec{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-top:1px solid #eef0f6;font-size:14px}
+.rec:first-child{border-top:0}
+.rec b{display:block}.rec small{color:var(--mut)}
+.rec button{flex:none;padding:8px 10px}
+.tag{font-size:11px;font-weight:800;padding:2px 7px;border-radius:8px;color:#fff;background:var(--pri)}.tag.t{background:var(--tri)}
+</style>
+</head>
+<body>
+
+<div id="lock">
+  <div class="card">
+    <h1 style="margin:0 0 4px;font-size:22px">💬 WhatsApp Sender Key Generator</h1>
+    <div class="hint" style="margin:0 0 14px">GCC-TBC WhatsApp Sender — फक्त मालकासाठी</div>
+    <label for="pin">PIN / पासवर्ड</label>
+    <input type="password" id="pin" autocomplete="current-password">
+    <label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="rem" checked style="width:auto"> या फोनवर लक्षात ठेवा</label>
+    <button class="big" id="btnLogin">उघडा</button>
+    <div class="msg" id="lockMsg"></div>
+  </div>
+</div>
+
+<div id="app" class="hide">
+<header id="hdr"><h1>💬 Sender Key Generator</h1><button id="btnOut">बाहेर पडा</button></header>
+<main>
+  <div class="card">
+    <label>License Type</label>
+    <div class="seg">
+      <label><input type="radio" name="type" value="FULL" checked><span>Full (पूर्ण)</span></label>
+      <label><input type="radio" name="type" value="TRIAL" class="t"><span>Trial (चाचणी)</span></label>
+    </div>
+
+    <div id="ccWrap"><label for="cc">Center Code</label>
+    <input type="tel" id="cc" inputmode="numeric" autocomplete="off"></div>
+    <label for="cn" id="cnLbl">Center Name</label>
+    <input type="text" id="cn" autocomplete="off">
+    <label for="mob" id="mobLbl">Customer Mobile (10 अंक) — ऐच्छिक</label>
+    <input type="tel" id="mob" inputmode="numeric" maxlength="10" autocomplete="off">
+
+    <div class="row">
+      <div><label for="days">Validity (Days)</label><input type="number" id="days" inputmode="numeric" value="365"></div>
+      <div><label for="usr" id="usrLbl">Max Users (PC)</label><input type="number" id="usr" inputmode="numeric" value="1"></div>
+    </div>
+    <div class="hint hide" id="trialNote" style="color:#E65100">Trial: मुदत Activation च्या दिवसापासून सुरू होते. एका PC वर एकच Trial.</div>
+
+    <div id="coursesWrap">
+    <label>Courses (कोणते कोर्स द्यायचे)</label>
+    <div class="chips" style="margin-bottom:8px"><label><input type="checkbox" id="all" checked><span>सर्व कोर्सेस (Full Package)</span></label></div>
+    <div class="chips off" id="courses">
+      <label><input type="checkbox" value="EN30"><span>English 30</span></label>
+      <label><input type="checkbox" value="EN40"><span>English 40</span></label>
+      <label><input type="checkbox" value="EN50"><span>English 50</span></label>
+      <label><input type="checkbox" value="EN60"><span>English 60</span></label>
+      <label><input type="checkbox" value="MR30"><span>मराठी 30</span></label>
+      <label><input type="checkbox" value="MR40"><span>मराठी 40</span></label>
+      <label><input type="checkbox" value="HI30"><span>हिंदी 30</span></label>
+      <label><input type="checkbox" value="HI40"><span>हिंदी 40</span></label>
+    </div>
+    </div>
+
+    <button class="big" id="btnGen">GENERATE LICENSE KEY</button>
+    <div class="msg" id="status"></div>
+  </div>
+
+  <div class="card hide" id="result">
+    <label>Generated Key</label>
+    <div class="key" id="outKey"></div>
+    <div class="acts">
+      <button class="btn" id="cpKey">📋 Key Copy</button>
+      <button class="btn" id="cpMsg">📋 संदेश Copy</button>
+    </div>
+    <div class="acts">
+      <button class="btn wa" id="btnWa">💬 WhatsApp वर पाठवा</button>
+      <button class="btn" id="btnShare">↗ Share</button>
+    </div>
+    <pre id="outMsg"></pre>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <b>अलीकडील Keys</b><button class="btn" id="btnRecent" style="flex:none">🔄 आणा</button>
+    </div>
+    <div id="recent" class="hint">"आणा" दाबा — मागच्या 15 key दिसतील. तिथूनही WhatsApp वर पुन्हा पाठवता येते.</div>
+  </div>
+</main>
+</div>
+
+<script>
+(function(){
+"use strict";
+var WEB_APP_URL="https://script.google.com/macros/s/AKfycbynrzXYaxmR7xuIwp5bWbax300nUnCfNszVITFHHqC_I8I5qaUI50ZMe1UzttY1y8Ai/exec";
+var $=function(i){return document.getElementById(i)};
+var PIN="", last={key:"",msg:"",mobile:""};
+
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
+
+function api(payload){
+  payload.pin=PIN;
+  // text/plain => CORS preflight नाही (Apps Script साठी आवश्यक)
+  return fetch(WEB_APP_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)})
+    .then(function(r){return r.json()});
+}
+function say(id,t,cls){var e=$(id);e.textContent=t;e.className="msg "+(cls||"")}
+
+/* ---- लॉगिन ---- */
+function login(auto){
+  var p=$("pin").value; if(!p){say("lockMsg","PIN टाका","err");return}
+  PIN=p; say("lockMsg","तपासत आहे…","");
+  $("btnLogin").disabled=true;
+  api({action:"mobileLogin"}).then(function(r){
+    $("btnLogin").disabled=false;
+    if(r.success){
+      if($("rem").checked)ls("gcctbc_sender_pin",p);else ls("gcctbc_sender_pin",null);
+      $("lock").classList.add("hide");$("app").classList.remove("hide");
+    }else{PIN="";if(auto)ls("gcctbc_sender_pin",null);say("lockMsg",r.message||"PIN चुकीचा","err")}
+  }).catch(function(){$("btnLogin").disabled=false;say("lockMsg","इंटरनेट/सर्व्हर समस्या. पुन्हा प्रयत्न करा.","err")});
+}
+$("btnLogin").onclick=function(){login(false)};
+$("pin").addEventListener("keydown",function(e){if(e.key==="Enter")login(false)});
+$("btnOut").onclick=function(){ls("gcctbc_sender_pin",null);PIN="";$("pin").value="";$("app").classList.add("hide");$("lock").classList.remove("hide")};
+var saved=ls("gcctbc_sender_pin"); if(saved){$("pin").value=saved;login(true)}
+
+/* ---- Type ---- */
+function isSender(){return true}
+function applyProd(){
+  var s=isSender();
+  $("ccWrap").classList.toggle("hide",s);$("coursesWrap").classList.toggle("hide",s);
+  $("cnLbl").textContent=s?"नाव / संस्था":"Center Name";
+  $("usrLbl").textContent=s?"Max डिव्हाइस (PC/फोन)":"Max Users (PC)";
+  $("usr").disabled=false; applyType();
+  $("result").classList.add("hide"); $("recent").className="hint"; $("recent").textContent='"आणा" दाबा — मागच्या 15 key दिसतील.';
+}
+function isTrial(){return document.querySelector('input[name=type]:checked').value==="TRIAL"}
+function applyType(){
+  var t=isTrial();
+  $("days").value=t?(isSender()?"7":"15"):"365"; $("usr").value="1"; $("usr").disabled=t&&!isSender();
+  $("btnGen").textContent=(isSender()?"SENDER ":"")+(t?"TRIAL KEY बनवा":"LICENSE KEY बनवा");
+  $("btnGen").className="big"+(t?" trial":"");
+  $("hdr").className=t?"trial":"";
+  document.querySelector('meta[name=theme-color]').content=t?"#F57C00":"#128C7E";
+  $("mobLbl").textContent=t?"Customer Mobile (10 अंक) — Trial साठी आवश्यक":"Customer Mobile (10 अंक) — ऐच्छिक";
+  $("trialNote").classList.toggle("hide",!t);
+}
+Array.prototype.forEach.call(document.querySelectorAll('input[name=type]'),function(r){r.onchange=applyType});
+$("all").onchange=function(){$("courses").classList.toggle("off",this.checked)};
+$("mob").addEventListener("input",function(){this.value=this.value.replace(/\D/g,"")});
+
+/* ---- Center lookup ---- */
+$("cc").addEventListener("change",function(){
+  var c=this.value.trim(); if(!c||isSender())return;
+  api({action:"mobileLookup",centerCode:c}).then(function(r){
+    if(r.success&&r.centerName){$("cn").value=r.centerName;say("status","Center सापडला: "+r.centerName,"ok")}
+    else say("status","नवीन Center Code आहे — नाव भरा.","")
+  }).catch(function(){});
+});
+
+/* ---- Generate ---- */
+function getCourses(){
+  if($("all").checked)return "ALL";
+  return Array.prototype.filter.call(document.querySelectorAll("#courses input"),function(c){return c.checked}).map(function(c){return c.value}).join(",");
+}
+function buildMsg(trial,name,key,days,sender){
+  if(sender){
+    if(trial)return "नमस्कार "+name+",\nGCC-TBC WhatsApp Sender चा "+days+" दिवसांचा Trial Key:\n\n"+key+"\n\nॲप उघडून Activation मध्ये ही Key टाका. मुदत Activation च्या दिवसापासून सुरू होते.";
+    return "नमस्कार "+name+",\nGCC-TBC WhatsApp Sender चा License Key:\n\n"+key+"\n\nॲप उघडून Activation मध्ये ही Key टाका.";
+  }
+  if(trial)return "नमस्कार "+name+",\nGCC-TBC Teacher चा "+days+" दिवसांचा Trial Key:\n\n"+key+"\n\nॲप उघडून Activation मध्ये ही Key टाका. मुदत Activation च्या दिवसापासून सुरू होते.";
+  return "नमस्कार "+name+",\nGCC-TBC Teacher चा License Key:\n\n"+key+"\n\nॲप उघडून Activation मध्ये ही Key टाका.";
+}
+function showResult(key,name,trial,days,mobile){
+  last.key=key;last.mobile=mobile||"";last.msg=buildMsg(trial,name,key,days,isSender());
+  $("outKey").textContent=key;$("outMsg").textContent=last.msg;
+  $("result").classList.remove("hide");
+  $("btnShare").classList.toggle("hide",!navigator.share);
+}
+$("btnGen").onclick=function(){
+  var trial=isTrial(), cc=$("cc").value.trim(), cn=$("cn").value.trim(), mob=$("mob").value.trim();
+  var days=parseInt($("days").value,10), usr=parseInt($("usr").value,10)||1, courses=getCourses();
+  var snd=isSender();
+  if(!snd&&!cc)return say("status","Center Code भरा!","err");
+  if(!cn)return say("status",snd?"नाव भरा!":"Center Name भरा!","err");
+  if(!(days>0))return say("status","Validity (Days) बरोबर भरा!","err");
+  if(!snd&&!courses)return say("status","कमीत कमी एक कोर्स निवडा!","err");
+  var ok=/^[6-9]\d{9}$/.test(mob);
+  if(trial&&!ok)return say("status","Trial साठी बरोबर 10 अंकी मोबाईल (6/7/8/9 ने सुरू) आवश्यक आहे.","err");
+  if(!trial&&mob&&!ok)return say("status","मोबाईल नंबर बरोबर नाही. 10 अंक टाका किंवा रिकामा सोडा.","err");
+  $("btnGen").disabled=true; say("status","Key तयार होत आहे…","");
+  api({action:snd?"mobileGenerateSender":"mobileGenerate",type:trial?"TRIAL":"FULL",centerCode:snd?"-":cc,centerName:cn,mobile:mob,validityDays:days,maxUsers:usr,courses:courses})
+  .then(function(r){
+    $("btnGen").disabled=false;
+    if(r.success){
+      say("status",trial?"✅ Trial Key तयार झाली आणि Google Sheet मध्ये Register झाली!":"✅ License Key तयार झाली आणि Google Sheet मध्ये Register झाली!","ok");
+      showResult(r.key,cn,trial,days,mob);
+      $("result").scrollIntoView({behavior:"smooth"});
+    }else say("status","❌ "+(r.message||"Key तयार झाली नाही"),"err");
+  }).catch(function(){$("btnGen").disabled=false;say("status","❌ इंटरनेट/सर्व्हर समस्या. Key तयार झाली का ते 'अलीकडील Keys' मध्ये तपासा.","err")});
+};
+
+/* ---- Copy / WhatsApp / Share ---- */
+function copy(t,done){
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(function(){say("status",done,"ok")},fb);else fb();
+  function fb(){var a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");say("status",done,"ok")}catch(e){}a.remove()}
+}
+function waLink(mobile,msg){return "https://wa.me/"+(mobile?"91"+mobile:"")+"?text="+encodeURIComponent(msg)}
+$("cpKey").onclick=function(){copy(last.key,"✅ Key Copy झाली.")};
+$("cpMsg").onclick=function(){copy(last.msg,"✅ संदेश Copy झाला.")};
+$("btnWa").onclick=function(){window.open(waLink(last.mobile,last.msg),"_blank")};
+$("btnShare").onclick=function(){navigator.share({text:last.msg}).catch(function(){})};
+
+/* ---- अलीकडील ---- */
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+var recList=[];
+$("btnRecent").onclick=function(){
+  $("recent").textContent="आणत आहे…";
+  api({action:isSender()?"mobileRecentSender":"mobileRecent"}).then(function(r){
+    if(!r.success){$("recent").textContent=r.message||"त्रुटी";return}
+    recList=r.list||[];
+    $("recent").className="";
+    $("recent").innerHTML=recList.map(function(x,i){
+      var t=String(x.type).toUpperCase()==="TRIAL";
+      return '<div class="rec"><div><b>'+esc(x.name)+' <span class="tag'+(t?' t':'')+'">'+(t?"TRIAL":"FULL")+'</span></b><small>'+esc(x.key)+(x.used?" • Activated":"")+'</small></div><button class="btn wa" data-i="'+i+'">💬</button></div>';
+    }).join("")||"काही नाही";
+  }).catch(function(){$("recent").textContent="इंटरनेट/सर्व्हर समस्या"});
+};
+$("recent").addEventListener("click",function(e){
+  var b=e.target.closest("button");if(!b)return;
+  var x=recList[+b.getAttribute("data-i")],t=String(x.type).toUpperCase()==="TRIAL";
+  var msg=buildMsg(t,x.name,x.key,x.days||15,isSender());
+  window.open(waLink(String(x.mobile||"").replace(/\D/g,"").slice(-10).length===10?String(x.mobile).replace(/\D/g,"").slice(-10):"",msg),"_blank");
+});
+
+applyProd();
+window.__t={buildMsg:buildMsg,getCourses:getCourses};
+})();
+</script>
+</body>
+</html>
